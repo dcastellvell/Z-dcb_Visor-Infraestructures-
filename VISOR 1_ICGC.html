@@ -1,0 +1,253 @@
+<html lang="es">
+
+<head>
+  <title>Visor 1 icgc</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="author" content="autor" />
+  <meta name="description" content="descripción página">
+  <meta name="robots" content="index,follow">
+  <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/leaflet.css" /> -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.3/dist/leaflet.css" />
+
+  
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <!-- Treballar en CANVAS millora el rendiment. És un métode per rasteritzar les geometries -->
+  <script>
+    L_PREFER_CANVAS = true; 
+  </script>
+  <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/leaflet.js"></script> -->
+  <script src="https://unpkg.com/leaflet@1.0.3/dist/leaflet.js"></script>
+  <script src="http://rawgithub.com/kartena/Proj4Leaflet/master/lib/proj4-compressed.js" type="text/javascript"></script>
+  <script src="https://rawgithub.com/kartena/Proj4Leaflet/master/src/proj4leaflet.js" type="text/javascript"></script>
+  <script src="https://calvinmetcalf.github.io/leaflet-ajax/dist/leaflet.ajax.js"></script>
+  <!-- enllacem css i js del pluguin leaflet search ??-->
+  <script src="js/leaflet-search.min.js"></script>
+  <link rel="stylesheet" href="css/leaflet-search.min.css" />
+
+  <style>
+    ul,ol{list-style:none}
+    h1,h2,h3,h4,h5,h6,pre,code{font-size:1em;}
+    ul,ol,li,h1,h2,h3,h4,h5,h6,pre,form,body,html,p,blockquote,fieldset{
+    margin:0;padding:0;line-height:1; list-style:none;}
+    a img,:link img,:visited img, fieldset{border:none;}
+    input[type=submit], input[type=reset], input[type=button] { *filter:chroma(color=#000000); }
+        
+    hr { clear:both; height:0; line-height:0; margin:0; padding:0; border:0; filter:alpha(opacity=0); }
+        
+    body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+
+    .header {
+      position: relative;
+      background-color: #B40404; 
+      opacity: 0.7;
+      height: 15%;
+      min-height: 100px;
+    }
+    .logo-image { 
+      position: absolute; 
+      height:65px; 
+      margin-top: 20px;
+      margin-left: 15px}
+
+    #map {
+      height: 85%;
+      width: 100%;
+    }
+  </style>
+
+  <script>
+    var map, orto56_57, orto94, orto08, OrtoCache, TopoCache, Cadastre;
+    var geojson, Tronc_AP7_VilaS, Remod_Enllaç;
+    var controlCapas;
+    var controlEscala;
+    var crs25831 = new L.Proj.CRS('EPSG:25831', '+proj=utm +zone=31 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs',
+        {
+          resolutions: [1100, 550, 275, 100, 50, 25, 10, 5, 2, 1, 0.5, 0.25]
+        }
+      );
+
+      $(document).ready(function () {
+
+      map = L.map('map', {
+        center: [41.107489, 1.131041],
+        zoom: 7,
+        crs: crs25831,
+        continuousWorld: true,
+        worldCopyJump: false,
+      });
+
+ /*Cridem mapes base*/
+        OrtoCache = L.tileLayer.wms("http://mapcache.icc.cat/map/bases/service?", {
+          layers: 'orto',
+          format: 'image/jpeg',
+          crs: crs25831,
+          continuousWorld: true,
+          attribution: 'Institut Cartogràfic i Geològic de Catalunya -ICGC',
+        }).addTo(map);
+
+
+        orto56_57 = L.tileLayer.wms("http://geoserveis.icgc.cat/icc_ortohistorica/wms/service?", {
+          layers: 'ovab5m',
+          format: 'image/jpeg',
+          crs: crs25831,
+          continuousWorld: true,
+          attribution: 'Institut Cartogràfic i Geològic de Catalunya -ICGC',
+        });
+
+        orto94 = L.tileLayer.wms("http://geoserveis.icgc.cat/icc_ortohistorica/wms/service?", {
+          layers: 'orto5m1994',
+          format: 'image/jpeg',
+          crs: crs25831,
+          continuousWorld: true,
+          attribution: 'Institut Cartogràfic i Geològic de Catalunya -ICGC',
+        });
+
+        orto08 = L.tileLayer.wms("http://geoserveis.icgc.cat/icc_ortohistorica/wms/service?", {
+          layers: 'orto25c2009',
+          format: 'image/jpeg',
+          crs: crs25831,
+          continuousWorld: true,
+          attribution: 'Institut Cartogràfic i Geològic de Catalunya -ICGC',
+        });
+
+        TopoCache = L.tileLayer.wms("http://mapcache.icc.cat/map/bases/service?", {
+          layers: 'topo',
+          format: 'image/jpeg',
+          crs: crs25831,
+          continuousWorld: true,
+        });
+
+        Cadastre = L.tileLayer.wms("http://ovc.catastro.meh.es/Cartografia/WMS/ServidorWMS.aspx?", {
+          layers: "Catastro",//nombre de la capa (ver get capabilities)
+          format: 'image/jpeg',
+          // transparent: true,
+          continuousWorld: true,
+          version: '1.1.1',//wms version (ver get capabilities)
+          attribution: "DIRECCION GENERAL DEL CATASTRO"
+        });
+
+      /*Inici GeoJson AJAX (crida a les geometries del fitxer)*/
+      Tronc_AP7_VilaS = new L.GeoJSON.AJAX('datos/Tronc_AP7_Vila-Seca.geojson', {
+        // maxZoom: 19,
+        // minZoom: 5,
+        fillColor: "#FFFF00",
+        color: "#FF0000",
+        weight: 1.5,
+        opacity: 1,
+        fillOpacity: 0.8,
+
+        onEachFeature: function (feature, layer) {
+          popupContent = "<b>" + feature.properties.EXPEDIENTE_EXP + "</b><br>" + feature.properties.FINCA_EXP + "</b><br>" + feature.properties.SUP_EXP_m2 +"m2"+ "</b><br> " + feature.properties.MA + "</b><br>"+feature.properties.TITULAR+"</b>";
+          layer.bindPopup(popupContent);
+        },
+      });
+
+       Remod_Enllaç = new L.GeoJSON.AJAX('datos/98-T-9913.geojson', {
+        // maxZoom: 19,
+        // minZoom: 5,
+        fillColor: "#FFFF00",
+        color: "#FF0000",
+        weight: 1.5,
+        opacity: 1,
+        fillOpacity: 0.8,
+
+        onEachFeature: function (feature, layer) {
+          popupContent = "<b>" + feature.properties.FINCA_EXP + "</b><br>" + feature.properties.SUP_EXP_m2 +"m2"+ "</b><br> " + feature.properties.MA + "</b><br>"+feature.properties.TITULAR+"</b>";
+          layer.bindPopup(popupContent);
+        },
+      });
+
+
+      var GrupCapes = L.layerGroup ([Tronc_AP7_VilaS, Remod_Enllaç]).addTo(map);
+
+      /* definim mapes base*/
+      var baseMaps = {
+        "Ortofoto vigent": OrtoCache,
+        "Ortofoto 2008":  orto08,
+        "Ortofoto 1994":  orto94,
+        "Vol Americà 56-57": orto56_57,
+        "Topogràfic-icgc": TopoCache,
+        "Cadastre": Cadastre
+      };
+      /*definim capes*/
+      var overlayMaps = {
+        "Tronc AP7 Tram Vila-Seca": Tronc_AP7_VilaS,
+        "Projecte 98-T-9913": Remod_Enllaç
+      };
+      /* definim controls de capes i mapes*/
+      controlCapas = L.control.layers(baseMaps, overlayMaps);
+      controlCapas.addTo(map);
+      controlEscala = L.control.scale();
+      controlEscala.addTo(map);
+
+      /*cridem el plugin de search map*/
+
+      var searchControl = new L.Control.Search({
+        layer: GrupCapes,
+        propertyName: 'FINCA_EXP',
+        marker: false,
+      });
+
+      searchControl.on('search:locationfound', function (e) {
+
+        e.layer.setStyle({ fillColor: '#00FF00', color: '#FF0000' });
+        if (e.layer._popup)
+          e.layer.openPopup();
+
+      }).on('search:collapsed', function (e) {
+
+        Tronc_AP7_VilaS.eachLayer(function (layer) {	//restore feature color
+          Tronc_AP7_VilaS.resetStyle(layer);
+        });
+        Remod_Enllaç.eachLayer(function (layer) {	//restore feature color
+          Remod_Enllaç.resetStyle(layer);
+        });
+      });
+
+      // document.getElementsByClassName("leaflet-control-search").innerHTML = "Hello World!"
+
+      map.addControl(searchControl);
+
+      var searchControl_2 = new L.Control.Search({
+        layer: GrupCapes,
+        propertyName: 'TITULAR',
+        marker: false,
+      });
+
+      searchControl_2.on('search:locationfound', function (e) {
+
+        e.layer.setStyle({ fillColor: '#00FF00', color: '#FF0000' });
+        if (e.layer._popup)
+          e.layer.openPopup();
+
+      }).on('search:collapsed', function (e) {
+
+        Tronc_AP7_VilaS.eachLayer(function (layer) {	//restore feature color
+          Tronc_AP7_VilaS.resetStyle(layer);
+        });
+        Remod_Enllaç.eachLayer(function (layer) {	//restore feature color
+          Remod_Enllaç.resetStyle(layer);
+        });
+      });
+
+      map.addControl(searchControl_2);
+
+    });
+  </script>
+</head>
+
+<body>
+  <div class="header">
+    <p>
+        <img class="logo-image" src="images/logo-visor.png">
+    </p>
+  </div>
+  <div id="map"></div>
+</body>
+
+</html>

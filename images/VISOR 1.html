@@ -1,0 +1,177 @@
+<html lang="es">
+
+<head>
+  <title>Visor 1</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="author" content="autor" />
+  <meta name="description" content="descripción página">
+  <meta name="robots" content="index,follow">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/leaflet.css" />
+
+  
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <!-- Treballar en CANVAS millora el rendiment. És un métode per rasteritzar les geometries -->
+  <script>
+    L_PREFER_CANVAS = true; 
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/leaflet.js"></script>
+  <script src="https://calvinmetcalf.github.io/leaflet-ajax/dist/leaflet.ajax.js"></script>
+  <!-- enllacem css i js del pluguin leaflet search ??-->
+  <!-- <script src="js/leaflet-search.min.js"></script>
+  <link rel="stylesheet" href="css/leaflet-search.min.css" /> -->
+
+  <style>
+    ul,ol{list-style:none}
+    h1,h2,h3,h4,h5,h6,pre,code{font-size:1em;}
+    ul,ol,li,h1,h2,h3,h4,h5,h6,pre,form,body,html,p,blockquote,fieldset{
+    margin:0;padding:0;line-height:1; list-style:none;}
+    a img,:link img,:visited img, fieldset{border:none;}
+    input[type=submit], input[type=reset], input[type=button] { *filter:chroma(color=#000000); }
+        
+    hr { clear:both; height:0; line-height:0; margin:0; padding:0; border:0; filter:alpha(opacity=0); }
+        
+    body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+
+    .header {
+      position: relative;
+      background-color: #B40404; 
+      opacity: 0.7;
+      height: 15%;
+      min-height: 100px;
+    }
+    .logo-image { 
+      position: absolute; 
+      height:65px; 
+      margin-top: 20px;
+      margin-left: 15px}
+
+    #map {
+      height: 85%;
+      width: 100%;
+    }
+  </style>
+  <script>
+    var map, osm, esri;
+    var geojson, AB05091F2;
+    var controlCapas;
+    var controlEscala;
+    $(document).ready(function () {
+
+      map = L.map('map', {
+        center: [41.544670, 2.428431],
+        zoom: 14
+      });
+      /*Cridem mapa*/
+      esri = L.tileLayer(
+        'http://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+          maxZoom: 21,
+          minZoom: 1,
+          attribution: 'Tiles © Esri',
+        }).addTo(map);
+      /*Cridem mapa*/
+      osm = L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        minZoom: 1,
+        attribution: 'OSM'
+      });
+
+      /*Inici GeoJson AJAX (crida a les geometries del fitxer)*/
+      AB05091F2 = new L.GeoJSON.AJAX('datos/AB05091F2.geojson', {
+        maxZoom: 19,
+        minZoom: 5,
+        fillColor: "#FFFF00",
+        color: "#FF0000",
+        weight: 1.5,
+        opacity: 1,
+        fillOpacity: 0.8,
+
+        onEachFeature: function (feature, layer) {
+          popupContent = "<b>" + feature.properties.numfinca + "</b><br>" + feature.properties.titular + "</b><br> " + feature.properties.exprop_m2_ +"m2"+ "</b>";
+          layer.bindPopup(popupContent);
+        },
+        // pointToLayer: function (feature, latlng) {
+        //   return L.circleMarker(latlng, {
+        //     radius: 6,
+        //     fillColor: "#00ff00",
+        //     color: "#ffffff",
+        //     weight: 2,
+        //     opacity: 1,
+        //     fillOpacity: 0.8
+        //   });
+        // }
+      }).addTo(map);
+      /* */
+      // cementerio = new L.GeoJSON.AJAX('datos/cementerio.geojson', {
+      //   maxZoom: 19,
+      //   minZoom: 14,
+      //   onEachFeature: function (feature, layer) {
+      //     popupContent = "<b>" + feature.properties.AREA + "</b><br>" + feature.properties.CARRCADAST + " " + feature.properties.DOORNUM + "</b>";
+      //     layer.bindPopup(popupContent);
+      //   },
+      //   style: function (feature) {
+      //     if (feature.properties.AREA > 100) {
+      //       return {
+      //         fillColor: "#00ff00",
+      //         color: "#ffffff",
+      //         weight: 2,
+      //         opacity: 1,
+      //         fillOpacity: 0.8
+      //       };
+      //     } else {
+      //       return {
+      //         fillColor: "#ffff00",
+      //         color: "#ffffff",
+      //         weight: 2,
+      //         opacity: 1,
+      //         fillOpacity: 0.8
+      //       };
+      //     }
+      //   }
+      // })
+
+      /* definim mapes base*/
+      var baseMaps = {
+        "Orto_esri": esri,
+        "Mapa_osm": osm
+      };
+      /*definim capes*/
+      var overlayMaps = {
+        "AB05091F2": AB05091F2,
+        // "cementerio": cementerio
+      };
+      /* definim controls de capes i mapes*/
+      controlCapas = L.control.layers(baseMaps, overlayMaps);
+      controlCapas.addTo(map);
+      controlEscala = L.control.scale();
+      controlEscala.addTo(map);
+
+      /*cridem el plugin de search map*/
+
+      var searchControl = new L.Control.Search({
+        layer: AB05091F2,
+        propertyName: 'numfinca',
+        circleLocation: true
+      });
+
+      map.addControl(searchControl);
+
+
+    });
+  </script>
+</head>
+
+<body>
+  <div class="header">
+    <p>
+        <img class="logo-image" src="images/logo-visor.png">
+    </p>
+  </div>
+  <div id="map"></div>
+</body>
+
+</html>
