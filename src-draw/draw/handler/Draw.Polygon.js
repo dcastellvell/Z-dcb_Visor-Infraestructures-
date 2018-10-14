@@ -11,8 +11,9 @@ L.Draw.Polygon = L.Draw.Polyline.extend({
 	Poly: L.Polygon,
 
 	options: {
-		showArea: false,
-		showLength: false,
+		showArea: true,
+		showLength: true,
+		allowIntersection: false,
 		shapeOptions: {
 			stroke: true,
 			color: '#3388ff',
@@ -27,7 +28,7 @@ L.Draw.Polygon = L.Draw.Polyline.extend({
 		// Also defines the units to use for the metric system as an array of
 		// strings (e.g. `['ha', 'm']`).
 		metric: true,
-		feet: true, // When not metric, to use feet instead of yards for display.
+		feet: false, // When not metric, to use feet instead of yards for display.
 		nautic: false, // When not metric, not feet use nautic mile for display
 		// Defines the precision for each type of unit (e.g. {km: 2, ft: 0}
 		precision: {}

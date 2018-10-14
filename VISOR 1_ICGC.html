@@ -21,10 +21,12 @@
   <script src="http://rawgithub.com/kartena/Proj4Leaflet/master/lib/proj4-compressed.js" type="text/javascript"></script>
   <script src="https://rawgithub.com/kartena/Proj4Leaflet/master/src/proj4leaflet.js" type="text/javascript"></script>
   <script src="https://calvinmetcalf.github.io/leaflet-ajax/dist/leaflet.ajax.js"></script>
+
   <!-- enllacem css i js del pluguin leaflet search ??-->
   <script src="js/leaflet-search.min.js"></script>
   <link rel="stylesheet" href="css/leaflet-search.min.css" />
 
+<!-- enllacem css i js del pluguin leaflet-draw ??-->
   <script src="src-draw/Leaflet.draw.js"></script>
   <script src="src-draw/Leaflet.Draw.Event.js"></script>
   <link rel="stylesheet" href="src-draw/leaflet.draw.css"/>
@@ -49,7 +51,6 @@
   <script src="src-draw/draw/handler/Draw.Polygon.js"></script>
   <script src="src-draw/draw/handler/Draw.Rectangle.js"></script>
 
-
   <script src="src-draw/edit/EditToolbar.js"></script>
   <script src="src-draw/edit/handler/EditToolbar.Edit.js"></script>
   <script src="src-draw/edit/handler/EditToolbar.Delete.js"></script>
@@ -62,6 +63,12 @@
   <script src="src-draw/edit/handler/Edit.Marker.js"></script>
   <script src="src-draw/edit/handler/Edit.CircleMarker.js"></script>
   <script src="src-draw/edit/handler/Edit.Circle.js"></script>
+
+<!-- enllacem js del pluguin leaflet-buffer ??-->
+  <script src="js/leaflet.buffer.min.js"></script>
+
+  <!-- <script src="js/leaflet.filelayer.js"></script>
+  <script src="https://raw.githubusercontent.com/mapbox/togeojson/master/togeojson.js"></script> -->
 
   <style>
     ul,ol{list-style:none}
@@ -169,7 +176,7 @@
           attribution: "DIRECCION GENERAL DEL CATASTRO"
         });
 
-      /*Inici GeoJson AJAX (crida a les geometries del fitxer)*/
+  /*Inici GeoJson AJAX (crida a les geometries del fitxer)*/
       Tronc_AP7_VilaS = new L.GeoJSON.AJAX('datos/Tronc_AP7_Vila-Seca.geojson', {
         // maxZoom: 19,
         // minZoom: 5,
@@ -177,7 +184,7 @@
         color: "#FF0000",
         weight: 1.5,
         opacity: 1,
-        fillOpacity: 0.8,
+        fillOpacity: 0.6,
 
         onEachFeature: function (feature, layer) {
           popupContent = "<b>" + feature.properties.EXPEDIENTE_EXP + "</b><br>" + feature.properties.FINCA_EXP + "</b><br>" + feature.properties.SUP_EXP_m2 +"m2"+ "</b><br> " + feature.properties.MA + "</b><br>"+feature.properties.TITULAR+"</b>";
@@ -192,7 +199,7 @@
         color: "#FF0000",
         weight: 1.5,
         opacity: 1,
-        fillOpacity: 0.8,
+        fillOpacity: 0.6,
 
         onEachFeature: function (feature, layer) {
           popupContent = "<b>" + feature.properties.FINCA_EXP + "</b><br>" + feature.properties.SUP_EXP_m2 +"m2"+ "</b><br> " + feature.properties.MA + "</b><br>"+feature.properties.TITULAR+"</b>";
@@ -202,32 +209,40 @@
 
       var GrupCapes = L.layerGroup ([Tronc_AP7_VilaS, Remod_Enllaç]).addTo(map);
 
-        // Inici Plugin draw
+        
+   // Inici Plugin draw
 
         var drawnItems = new L.FeatureGroup();
         map.addLayer(drawnItems);
         // Set the title to show on the polygon button
-        L.drawLocal.draw.toolbar.buttons.polygon = 'Draw a sexy polygon!';
+        // L.drawLocal.draw.toolbar.buttons.polygon = 'Dibuixa un polígon';
+        // L.drawLocal.draw.toolbar.buttons.polyline = 'Dibuixa un línea';
+
         var drawControl = new L.Control.Draw({
           position: 'topleft',
           draw: {
             polyline: true,
             polygon: true,
-            circle: true,
-            marker: true
+            circle: false,
+            marker: true,
+            circlemarker: false
           },
           edit: {
             featureGroup: drawnItems,
-            remove: true
+            remove: true,
+            buffer: {
+              replacePolylines: false,
+              separateBuffer: false,
+            },
           }
         });
         map.addControl(drawControl);
         map.on(L.Draw.Event.CREATED, function (e) {
           var type = e.layerType,
             layer = e.layer;
-          if (type === 'marker') {
-            layer.bindPopup('A popup!');
-          }
+          // if (type === 'polygon') {
+          //   layer.bindPopup('A popup!');
+          // }
           drawnItems.addLayer(layer);
         });
         map.on(L.Draw.Event.EDITED, function (e) {
@@ -239,7 +254,8 @@
           console.log("Edited " + countOfEditedLayers + " layers");
         });
 
-      /* definim mapes base*/
+
+  /* definim mapes base*/
       var baseMaps = {
         "Ortofoto vigent": OrtoCache,
         "Ortofoto 2008":  orto08,
@@ -248,23 +264,23 @@
         "Topogràfic-icgc": TopoCache,
         "Cadastre": Cadastre
       };
-      /*definim capes*/
+  /*definim capes*/
       var overlayMaps = {
         "Tronc AP7 Tram Vila-Seca": Tronc_AP7_VilaS,
         "Projecte 98-T-9913": Remod_Enllaç
       };
-      /* definim controls de capes i mapes*/
-      controlCapas = L.control.layers(baseMaps, overlayMaps, drawnItems);
+  /* definim controls de capes i mapes*/
+      controlCapas = L.control.layers(baseMaps, overlayMaps);
       controlCapas.addTo(map);
       controlEscala = L.control.scale();
       controlEscala.addTo(map);
 
-      /*cridem el plugin de search map*/
-
+  /*cridem el plugin de search map*/
       var searchControl = new L.Control.Search({
         layer: GrupCapes,
         propertyName: 'FINCA_EXP',
         marker: false,
+        zoom: 11
       });
 
       searchControl.on('search:locationfound', function (e) {
@@ -283,7 +299,6 @@
         });
       });
 
-      // document.getElementsByClassName("leaflet-control-search").innerHTML = "Hello World!"
 
       map.addControl(searchControl);
 
@@ -291,13 +306,15 @@
         layer: GrupCapes,
         propertyName: 'TITULAR',
         marker: false,
+        zoom: 11
       });
 
       searchControl_2.on('search:locationfound', function (e) {
 
+        // map.setZoom(16);
         e.layer.setStyle({ fillColor: '#00FF00', color: '#FF0000' });
         if (e.layer._popup)
-          e.layer.openPopup();
+          e.layer.openPopup();    
 
       }).on('search:collapsed', function (e) {
 
@@ -312,6 +329,39 @@
       map.addControl(searchControl_2);
 
     });
+
+    // L.Control.fileLayerLoad({
+    //       // Allows you to use a customized version of L.geoJson.
+    //       // For example if you are using the Proj4Leaflet leaflet plugin,
+    //       // you can pass L.Proj.geoJson and load the files into the
+    //       // L.Proj.GeoJson instead of the L.geoJson.
+    //       layer: L.geoJson,
+    //       // See http://leafletjs.com/reference.html#geojson-options
+    //       layerOptions: { style: { color: 'red', opacity: 0.7 } },
+    //       // Add to map after loading (default: true) ?
+    //       addToMap: true,
+    //       // File size limit in kb (default: 1024) ?
+    //       fileSizeLimit: 1024,
+    //       // Restrict accepted file formats (default: .geojson, .json, .kml, and .gpx) ?
+    //       formats: [
+    //         '.geojson',
+    //         '.kml'
+    //       ]
+    //     }).addTo(map);
+
+    //     var control = L.Control.fileLayerLoad();
+    //     control.loader.on('data:loaded', function (event) {
+    //       // event.layer gives you access to the layers you just uploaded!
+
+    //       // Add to map layer switcher
+    //       layerswitcher.addOverlay(event.layer, event.filename);
+    //     });
+    //     var control = L.Control.fileLayerLoad();
+    //     control.loader.on('data:error', function (error) {
+    //       // Do something usefull with the error!
+    //       console, error(error);
+    //     });
+
   </script>
 </head>
 
