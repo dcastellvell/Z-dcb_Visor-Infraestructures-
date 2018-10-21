@@ -342,11 +342,17 @@
       }).on('search:collapsed', function (e) {
 
         Tronc_AP7_VilaS.eachLayer(function (layer) {	//restore feature color
-          Tronc_AP7_VilaS.resetStyle(layer);
-        });
-        Remod_Enllaç.eachLayer(function (layer) {	//restore feature color
-          Remod_Enllaç.resetStyle(layer);
-        });
+            Tronc_AP7_VilaS.resetStyle(layer);
+          });
+          Tronc_AP7_Vilablareix.eachLayer(function (layer) {	//restore feature color
+            Tronc_AP7_Vilablareix.resetStyle(layer);
+          });
+          Remod_EnllaçVS.eachLayer(function (layer) {	//restore feature color
+            Remod_EnllaçVS.resetStyle(layer);
+          });
+          GI9903.eachLayer(function (layer) {	//restore feature color
+            GI9903.resetStyle(layer);
+          });
       });
 
 
@@ -361,26 +367,26 @@
 
       searchControl_2.on('search:locationfound', function (e) {
 
-        // map.setZoom(16);
-        e.layer.setStyle({ fillColor: '#00FF00', color: '#FF0000' });
-        if (e.layer._popup)
-          e.layer.openPopup();    
+          // map.setZoom(16);
+          e.layer.setStyle({ fillColor: '#00FF00', color: '#FF0000' });
+          if (e.layer._popup)
+            e.layer.openPopup();
 
-      }).on('search:collapsed', function (e) {
+        }).on('search:collapsed', function (e) {
 
-        Tronc_AP7_VilaS.eachLayer(function (layer) {	//restore feature color
-          Tronc_AP7_VilaS.resetStyle(layer);
+          Tronc_AP7_VilaS.eachLayer(function (layer) {	//restore feature color
+            Tronc_AP7_VilaS.resetStyle(layer);
+          });
+          Tronc_AP7_Vilablareix.eachLayer(function (layer) {	//restore feature color
+            Tronc_AP7_Vilablareix.resetStyle(layer);
+          });
+          Remod_EnllaçVS.eachLayer(function (layer) {	//restore feature color
+            Remod_EnllaçVS.resetStyle(layer);
+          });
+          GI9903.eachLayer(function (layer) {	//restore feature color
+            GI9903.resetStyle(layer);
+          });
         });
-        Tronc_AP7_Vilablareix.eachLayer(function (layer) {	//restore feature color
-          Tronc_AP7_Vilablareix.resetStyle(layer);
-        });
-        Remod_EnllaçVS.eachLayer(function (layer) {	//restore feature color
-          Remod_EnllaçVS.resetStyle(layer);
-        });
-        GI9903.eachLayer(function (layer) {	//restore feature color
-          GI9903.resetStyle(layer);
-        });
-      });
 
       map.addControl(searchControl_2);
 
